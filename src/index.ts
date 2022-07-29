@@ -38,6 +38,10 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('offer', (data) => {
+    console.log('Offer', data);
+  });
+
   socket.on('disconnect', () => {
     console.log(`Disconnect: ${socket.id}`);
     if (watchers[socket.id]) {
