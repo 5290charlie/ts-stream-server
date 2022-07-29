@@ -9,13 +9,13 @@ import express, { Express } from 'express';
 import session from 'express-session';
 import cors from 'cors';
 import socketio, { Socket, Server as SocketServer } from 'socket.io';
-import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from './types';
+import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, RtcMsg } from './types';
 
 const { PORT = 8080, CORS_ORIGIN = 'http://localhost:3000' } = process.env;
 
 const app = express();
 const web = http.createServer(app);
-const io = new SocketServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(web, {
+const io = new SocketServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, RtcMsg>(web, {
   cors: {
     origin: CORS_ORIGIN,
     credentials: true
@@ -23,10 +23,13 @@ const io = new SocketServer<ClientToServerEvents, ServerToClientEvents, InterSer
 });
 
 let streamer: Socket | null = null;
-let watchers: { [id: string]: Socket } = {};
+const clients: Socket[] = [];
+const watchers: { [id: string]: Socket } = {};
 
 io.on('connection', (socket) => {
   console.log('Connected', socket.id);
+
+  clients.push(socket);
 
   socket.on('reg', (role) => {
     if (role === 'streamer') {
@@ -38,8 +41,21 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('offer', (data) => {
-    console.log('Offer', data);
+  socket.on('offer', (msg) => {
+    console.log('Offer', msg);
+    if (socket.id == streamer?.id) {
+
+    } else if (streamer) {
+      socket.to(streamer.id).emit('offer', msg);
+    }
+  });
+
+  socket.on('answer', (msg) => {
+    console.log('Answer', msg);
+  });
+
+  socket.on('candidate', (msg) => {
+    console.log('Candidate', msg);
   });
 
   socket.on('disconnect', () => {
