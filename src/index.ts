@@ -11,13 +11,13 @@ import cors from 'cors';
 import socketio, { Socket, Server as SocketServer } from 'socket.io';
 import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from './types';
 
-const { PORT = 8080 } = process.env;
+const { PORT = 8080, CORS_ORIGIN = 'http://localhost:3000' } = process.env;
 
 const app = express();
 const web = http.createServer(app);
 const io = new SocketServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(web, {
   cors: {
-    origin: 'http://localhost:3000',
+    origin: CORS_ORIGIN,
     credentials: true
   }
 });
